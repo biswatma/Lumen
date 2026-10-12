@@ -168,8 +168,11 @@ private fun ConnectedApp(
         val background by vm.backgroundAllowed.collectAsStateWithLifecycle()
         val history by vm.historyAllowed.collectAsStateWithLifecycle()
         val canAskMore by vm.canAskMore.collectAsStateWithLifecycle()
+        val stepsCheck by vm.stepsCheck.collectAsStateWithLifecycle()
         SourceScreen(
           connection, status, states, counts, allowed, background, history, canAskMore, lastSync, message,
+          stepsCheck = stepsCheck,
+          onCheckSteps = vm::checkSteps,
           onBack = ::back,
           onSync = vm::syncNow,
           onAllowAccess = onAllowAccess,

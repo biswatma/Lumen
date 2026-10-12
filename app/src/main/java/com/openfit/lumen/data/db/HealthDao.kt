@@ -39,6 +39,10 @@ interface HealthDao {
     rows.chunked(2_000).forEach { upsert(it) }
   }
 
+  /** End time of the newest stored reading of these types (up to [beforeMs]), or null. */
+  @Query("SELECT MAX(endMs) FROM data_points WHERE type IN (:types) AND endMs <= :beforeMs")
+  suspend fun latestEnd(types: List<String>, beforeMs: Long): Long?
+
   @Query("DELETE FROM data_points") suspend fun deleteAllPoints()
 
   @Upsert suspend fun upsertState(state: SyncStateEntity)

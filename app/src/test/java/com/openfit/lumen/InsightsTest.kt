@@ -33,6 +33,7 @@ class FakeDao : HealthDao {
   override suspend fun pruneBefore(type: String, beforeMs: Long) { points.values.removeIf { it.type == type && it.startMs < beforeMs } }
   override suspend fun deleteRange(type: String, fromMs: Long, toMs: Long) { points.values.removeIf { it.type == type && it.startMs >= fromMs && it.startMs < toMs } }
   override suspend fun replaceRange(type: String, fromMs: Long, toMs: Long, rows: List<DataPointEntity>) { deleteRange(type, fromMs, toMs); upsert(rows) }
+  override suspend fun latestEnd(types: List<String>, beforeMs: Long) = points.values.filter { it.type in types && it.endMs <= beforeMs }.maxOfOrNull { it.endMs }
   override suspend fun deleteAllPoints() = points.clear()
   override suspend fun upsertState(state: SyncStateEntity) {}
   override suspend fun state(type: String): SyncStateEntity? = null
@@ -193,5 +194,11 @@ class InsightsTest {
     val bio = withAge.bioAgeModel()!!
     assertEquals(34, bio.calendarAge)
     assertTrue(bio.factors.any { it.name == "Resting heart rate" })
+  }
+
+  @Test fun homeShowsHowCurrentGoogleHealthDataIs() = runBlocking {
+    dao.upsert(listOf(steps(today, 13, 500.0))) // a reading from 13:00 to 13:01
+    assertEquals("13:01", insights.todayModel().dataUpTo)
+    assertEquals(null, Insights(FakeDao(), Clock24(true, zone)) { now }.todayModel().dataUpTo)
   }
 }

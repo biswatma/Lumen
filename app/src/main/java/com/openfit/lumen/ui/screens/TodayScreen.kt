@@ -65,7 +65,16 @@ fun TodayScreen(
   PulseScreen(P.PlainBg, gap = 18.dp, refreshing = refreshing, onRefresh = onRefresh) {
     // header
     Row(Modifier.fillMaxWidth().padding(horizontal = 4.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-      Text(model.dateLabel, style = T.Header, modifier = Modifier.weight(1f).semantics { heading() })
+      Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Text(model.dateLabel, style = T.Header, modifier = Modifier.semantics { heading() })
+        Text(
+          listOfNotNull(
+            syncLine.replaceFirstChar { it.uppercase() },
+            model.dataUpTo?.let { "Google Health data to $it" },
+          ).joinToString(" · "),
+          style = T.Tiny.copy(color = if (accessOff) P.Bad else P.Faint),
+        )
+      }
       Box(
         Modifier.size(44.dp).clip(CircleShape).background(P.Avatar).clickable(role = Role.Button, onClickLabel = "Profile and data source", onClick = onOpenSource)
           .semantics { contentDescription = "Profile and data source" },

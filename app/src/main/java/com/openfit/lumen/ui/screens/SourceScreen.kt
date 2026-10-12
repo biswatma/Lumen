@@ -20,6 +20,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +45,7 @@ import com.openfit.lumen.data.hc.HealthConnectSource
 import com.openfit.lumen.data.hc.HeartZones
 import com.openfit.lumen.data.sync.SyncEngine
 import com.openfit.lumen.data.sync.SyncStatus
+import com.openfit.lumen.ui.LumenViewModel.StepsCheck
 import com.openfit.lumen.ui.components.DetailHeader
 import com.openfit.lumen.ui.components.LumenIcons
 import com.openfit.lumen.ui.components.PCard
@@ -78,6 +80,8 @@ fun SourceScreen(
   canAskMore: Boolean,
   lastSyncText: String,
   message: String?,
+  stepsCheck: StepsCheck?,
+  onCheckSteps: () -> Unit,
   onBack: () -> Unit,
   onSync: () -> Unit,
   onAllowAccess: () -> Unit,
@@ -135,6 +139,8 @@ fun SourceScreen(
 
     message?.let { PCard(color = P.BadBg) { Text(it, style = T.Body14.copy(color = P.Bad)) } }
 
+    StepsCheckCard(stepsCheck, lastSyncText, onCheckSteps)
+
     Text("DATA WE READ", style = T.Eyebrow.copy(fontSize = 13.sp, fontWeight = FontWeight.Bold), modifier = Modifier.padding(start = 4.dp, top = 6.dp))
     PCard(gap = 0.dp) {
       GROUPS.forEachIndexed { i, g ->
@@ -185,6 +191,36 @@ fun SourceScreen(
       dismissButton = { TextButton(onClick = { confirm = false }) { Text("Cancel", style = T.Label) } },
       containerColor = P.Card,
     )
+  }
+}
+
+/**
+ * Explains why Lumen's step count can differ from the Google Health app: compares what
+ * Google Health has shared with Health Connect, what all apps shared, and what Lumen stored.
+ */
+@Composable
+private fun StepsCheckCard(check: StepsCheck?, refreshKey: String, onCheck: () -> Unit) {
+  LaunchedEffect(refreshKey) { onCheck() } // on open, and again after each sync
+  PCard(gap = 0.dp) {
+    Text("Today's steps in Health Connect", style = T.Title, modifier = Modifier.padding(bottom = 6.dp))
+    fun n(v: Long?) = v?.let { "%,d".format(it) } ?: "—"
+    InfoRow("Google Health shared", n(check?.googleHealth))
+    Divider()
+    InfoRow("In Lumen", n(check?.stored))
+    Divider()
+    if (check?.allApps != null) {
+      InfoRow("Health Connect total, all apps", n(check.allApps))
+      Divider()
+    }
+    InfoRow("Newest Google Health record", check?.newestRecord ?: "—")
+    val gh = check?.googleHealth
+    val note = when {
+      check == null -> "Checking…"
+      gh != null && check.stored < gh -> "Lumen has fewer steps than Health Connect — pull to refresh on Home to catch up."
+      check.allApps != null && gh != null && check.allApps > gh -> "Other apps (or your phone itself) also count steps; Lumen only uses Google Health's."
+      else -> "Lumen matches what Google Health has shared. If the Google Health app shows more, it hasn't copied its latest steps to Health Connect yet — opening the Google Health app usually makes it do that, then pull to refresh."
+    }
+    Text(note, style = T.Tiny.copy(lineHeight = 18.sp), modifier = Modifier.padding(top = 10.dp))
   }
 }
 

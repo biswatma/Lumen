@@ -9,6 +9,7 @@ import com.openfit.lumen.data.db.HealthDao
 import com.openfit.lumen.data.db.SyncStateEntity
 import com.openfit.lumen.data.hc.HealthConnectSource
 import com.openfit.lumen.data.hc.HeartZones
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -145,7 +146,12 @@ class SyncEngine(
       if (stopRequested) return count
       val end = minOf(start.plus(chunk, ChronoUnit.DAYS), to)
       val restingHr = if (type == HealthTypes.HEART_RATE) restingHrByDay(start, end) else emptyMap()
-      val rows = source.read(type, start, end, restingHr, age)
+      // Read a little past both edges, then keep only rows that start inside this chunk. Records
+      // that cross a chunk edge are then stored exactly once, whichever way Health Connect matches
+      // interval records against a time range.
+      val margin = if (type == HealthTypes.HEART_RATE) Duration.ofHours(2) else Duration.ofDays(1)
+      val rows = source.read(type, start.minus(margin), end.plus(margin), restingHr, age)
+        .filter { it.startMs >= start.toEpochMilli() && it.startMs < end.toEpochMilli() }
       // Replace, don't merge: records deleted or rewritten in Health Connect must not linger here.
       // Heart rate also yields derived zone-minute rows, which are replaced the same way.
       rows.groupBy { it.type }.let { byType ->

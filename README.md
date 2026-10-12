@@ -10,7 +10,7 @@ An Android app that gives a simpler, deeper view of your Google Health data.
 
 ## ⬇️ Download
 
-**[Download Lumen.apk](https://github.com/biswatma/Lumen/raw/main/apk/Lumen.apk)** (version 2.5, Android 9+, ~18 MB)
+**[Download Lumen.apk](https://github.com/biswatma/Lumen/raw/main/apk/Lumen.apk)** (version 2.7, Android 9+, ~18 MB)
 
 1. Open the link on your Android phone and download the APK.
 2. Tap the file and allow "Install unknown apps" for your browser or Files app when asked.
@@ -92,15 +92,52 @@ Some numbers can differ from the Google Health app, because Health Connect doesn
 - **"Longest sitting"** becomes **"Longest quiet stretch"**: consecutive waking hours with under 250 steps. Health Connect has no sitting periods.
 - **Main sleep** is the longest session per night. Short daytime sessions count as naps.
 
-## How sync works
+## How data sync works
 
-- **When:** on app open (if the last sync is more than 15 minutes old), every 6 hours in the background (if background reads are allowed), and from **Sync now**.
-- **What:** each type is read with `readRecords`, filtered to the Google Health package, and paged.
-- **First sync:** backfills 180 days, as far as Health Connect allows.
-- **Later syncs:** re-read from 2 days before the last success. Rows are upserted by Health Connect record id, so nothing duplicates.
+```
+ Your watch ──► Google Health app ──► Health Connect ──► Lumen ──► Lumen's local database ──► screens & widgets
+   (Fitbit)       (Google's app)       (on your phone)    (reads)     (on your phone)
+```
+
+Lumen never talks to Google's servers. Your watch syncs to the **Google Health app**, Google Health copies the data into **Health Connect** (Android's on-device health store), and Lumen reads it from there into its own database on the phone.
+
+### When Lumen syncs
+
+| Trigger | What happens |
+|---|---|
+| Opening Lumen | Syncs if the last sync is more than 15 minutes old (or nothing is stored yet) |
+| **Pull down on Home** | Syncs right away; if a sync is already running, waits for it and reads again |
+| **Sync now** (Profile & data) | Syncs right away |
+| In the background | Every 6 hours, only if you allowed *Access data in the background* in Health Connect |
+
+After every sync, the home-screen widgets redraw. Widgets also redraw every 30 minutes from stored data.
+
+### Why Lumen can show fewer steps than the Google Health app
+
+The Google Health app shows live data from your watch, but it copies that data into Health Connect **on its own schedule** — sometimes minutes, sometimes hours later. No app can force it to copy sooner, so a refresh in Lumen only picks up what Google Health has already shared.
+
+To see what's going on:
+
+- **Home** shows a small line under the date, e.g. *Synced today 10:13 PM · Google Health data to 4:58 PM*. The second time is the newest reading Google Health has shared. If it's well behind the current time, Google Health hasn't shared its latest data yet.
+- **Profile & data › Today's steps in Health Connect** compares what Google Health has shared today, what Lumen has stored, and the newest Google Health record.
+  - Lumen matches "Google Health shared" but the Google Health app shows more → it's the copying delay. Open the Google Health app for a moment (that usually makes it share), then pull down on Home in Lumen.
+  - "In Lumen" is lower than "Google Health shared" → pull down on Home to catch up; if it stays lower, please open an issue.
+
+Also check that Google Health is allowed to write each data type: Settings › Health Connect › App permissions › Google Health.
+
+### How much history
+
+- The first sync reads up to **180 days** of history.
+- Health Connect only gives apps **30 days** before their first permission grant unless you allow *Access past data*. Trends' 90-day comparison needs that permission, or a few months of use.
+
+### Technical details
+
+- **What:** each data type is read with `readRecords`, filtered to the Google Health package (`com.fitbit.FitbitMobile`), and paged. Other apps' data is never read.
+- **Incremental:** later syncs re-read from 2 days before the last successful sync, so late or edited records are picked up.
+- **Mirrors Health Connect:** each window read replaces the stored copy in one database transaction, so records Google Health deletes or rewrites don't linger, and nothing is duplicated. Windows are read with a small overlap and rows are kept only if they start inside the window, so records crossing a window edge are stored exactly once.
 - **Heart rate:** read a day at a time and stored as one row per minute (average and max), kept for 30 days. Zone minutes derived from it are kept for 180 days.
-- **Failures:** a type without permission, or one that fails, is shown on the Data source screen and doesn't stop the others.
-- **Disconnect:** stops any running sync, deletes every row, vacuums the database file, then gives back Lumen's Health Connect permissions. Nothing in Health Connect or Google Health is touched.
+- **Failures:** a data type without permission, or one that fails, is shown on Profile & data and doesn't stop the others.
+- **Disconnect:** stops any running sync, deletes every stored row, vacuums the database file, then gives back Lumen's Health Connect permissions. Nothing in Health Connect or Google Health is touched.
 
 ## Code map
 

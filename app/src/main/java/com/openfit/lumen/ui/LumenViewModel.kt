@@ -61,8 +61,9 @@ class LumenViewModel(application: Application) : AndroidViewModel(application) {
   ) { c, attempt, age -> Triple(c, attempt, age) }
 
   private val _heartDay = MutableStateFlow(insights.today().minusDays(1))
-  private val _activityDay = MutableStateFlow(insights.today().minusDays(1))
-  private val _trendRange = MutableStateFlow(TrendRange.D30)
+  /** Fitness opens on today's steps; Trends opens on the last 7 days. */
+  private val _activityDay = MutableStateFlow(insights.today())
+  private val _trendRange = MutableStateFlow(TrendRange.D7)
   val trendRange: StateFlow<TrendRange> = _trendRange.asStateFlow()
 
   val today: StateFlow<Load<TodayModel>> = dataVersion.mapLatest { Load.Ready(insights.todayModel()) }.asLoad()
@@ -136,6 +137,24 @@ class LumenViewModel(application: Application) : AndroidViewModel(application) {
   fun syncNow() = viewModelScope.launch {
     if (!app.sync.syncAll()) _message.value = "Lumen can't read Health Connect. Allow access under Manage permissions."
     else _message.value = null
+  }
+
+  /** Today's steps three ways, to explain a difference from the Google Health app. */
+  data class StepsCheck(val googleHealth: Long?, val allApps: Long?, val stored: Long, val newestRecord: String?)
+
+  private val _stepsCheck = MutableStateFlow<StepsCheck?>(null)
+  val stepsCheck: StateFlow<StepsCheck?> = _stepsCheck.asStateFlow()
+
+  fun checkSteps() = viewModelScope.launch {
+    val today = java.time.LocalDate.now().toString()
+    val stored = dao.dailySums(HealthTypes.STEPS.id, today, today).sumOf { it.total }.toLong()
+    val clock = Clock24(DateFormat.is24HourFormat(getApplication()))
+    _stepsCheck.value = StepsCheck(
+      googleHealth = runCatching { hc.googleHealthStepsToday() }.getOrNull(),
+      allApps = runCatching { hc.allAppsStepsToday() }.getOrNull(),
+      stored = stored,
+      newestRecord = runCatching { hc.newestStepsRecordEnd() }.getOrNull()?.let { clock.time(it.toEpochMilli()) },
+    )
   }
 
   private val _refreshing = MutableStateFlow(false)

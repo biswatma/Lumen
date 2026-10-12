@@ -133,6 +133,7 @@ class Insights(
 
     return TodayModel(
       dateLabel = dayLong.format(t),
+      dataUpTo = dataUpTo(),
       recovery = recovery,
       cards = cards,
       notes = notes,
@@ -149,6 +150,18 @@ class Insights(
       monitorNote = monitorNote,
       bio = bioAgeModel(),
     )
+  }
+
+  /** Newest stored steps / heart-rate reading: how current Google Health's data in Health Connect is. */
+  private suspend fun dataUpTo(): String? {
+    val nowMs = now().toEpochMilli()
+    val ms = dao.latestEnd(listOf(HealthTypes.STEPS.id, HealthTypes.HEART_RATE.id), nowMs + 60_000) ?: return null
+    val day = Instant.ofEpochMilli(ms).atZone(zone).toLocalDate()
+    return when (day) {
+      today() -> clock.time(ms)
+      today().minusDays(1) -> "yesterday ${clock.time(ms)}"
+      else -> "${dayShort.format(day)} ${clock.time(ms)}"
+    }
   }
 
   private fun monitorTone(o: Overnight, concern: Concern): Tone = when {

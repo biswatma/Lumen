@@ -37,6 +37,8 @@ data class MonitorItem(val key: String, val value: String, val unit: String, val
 
 data class TodayModel(
   val dateLabel: String,
+  /** When the newest Google Health reading stored here was taken, e.g. "8:10 PM" or "yesterday 11:58 PM". */
+  val dataUpTo: String?,
   val recovery: Recovery,
   val cards: List<MetricCard>,
   val notes: List<PlainNote>,

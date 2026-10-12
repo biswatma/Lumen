@@ -22,6 +22,7 @@ import androidx.health.connect.client.records.Vo2MaxRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.records.metadata.Metadata
+import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.openfit.lumen.data.HealthType
@@ -156,6 +157,33 @@ class HealthConnectSource(private val context: Context) {
       ReadRecordsRequest(StepsRecord::class, TimeRangeFilter.between(now.minusSeconds(days * 86_400), now), pageSize = 1000),
     )
     return response.records.map { it.metadata.dataOrigin.packageName }.toSet() - GOOGLE_HEALTH_PACKAGE
+  }
+
+  /** Google Health's steps for today, summed live from its records in Health Connect. */
+  suspend fun googleHealthStepsToday(): Long {
+    val start = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()
+    return readAll(StepsRecord::class, start, Instant.now()).filter { it.startTime >= start }.sumOf { it.count }
+  }
+
+  /**
+   * Health Connect's own step total for today across all apps (it removes overlaps between
+   * sources). Null when Health Connect has no total, e.g. no app is on its priority list.
+   */
+  suspend fun allAppsStepsToday(): Long? {
+    val start = LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant()
+    val response = client.aggregate(
+      AggregateRequest(metrics = setOf(StepsRecord.COUNT_TOTAL), timeRangeFilter = TimeRangeFilter.between(start, Instant.now())),
+    )
+    return response[StepsRecord.COUNT_TOTAL]
+  }
+
+  /** End time of the newest Google Health steps record in Health Connect. */
+  suspend fun newestStepsRecordEnd(): Instant? {
+    val now = Instant.now()
+    val response = client.readRecords(
+      ReadRecordsRequest(StepsRecord::class, TimeRangeFilter.between(now.minusSeconds(7 * 86_400), now), dataOriginFilter = origin, ascendingOrder = false, pageSize = 1),
+    )
+    return response.records.firstOrNull()?.endTime
   }
 
   /** The wearable named on the most recent Google Health record, if any. */
