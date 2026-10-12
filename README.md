@@ -2,8 +2,23 @@
 
 An Android app that gives a simpler, deeper view of your Google Health data.
 
+> [!IMPORTANT]
+> ### 🔒 No sign-in, no internet
+> **There is no Google account sign-in and no cloud API. The app has no `INTERNET` permission** — it has no way to send your health data over the network. Everything is read from Health Connect on your phone and stays on your phone.
+
+## ⬇️ Download
+
+**[Download Lumen.apk](https://github.com/biswatma/Lumen/raw/main/apk/Lumen.apk)** (version 2.4, Android 9+, ~15 MB)
+
+1. Open the link on your Android phone and download the APK.
+2. Tap the file and allow "Install unknown apps" for your browser or Files app when asked.
+3. Open Lumen, tap **Connect to Health Connect**, and allow the data types (plus past data and background access for the full experience).
+
+Make sure the **Google Health** app shares its data with Health Connect: Settings › Health Connect › App permissions › Google Health. This is a test build signed with a development key, so Play Protect may warn that it's from an unknown developer.
+
+## Why Lumen
+
 - **One source.** Lumen reads from **Health Connect** on the phone, and only records written by the Google Health app (package `com.fitbit.FitbitMobile`; the Fitbit app kept its package when it became Google Health). Other apps' data in Health Connect is ignored.
-- **No sign-in, no internet.** There is no Google account sign-in and no cloud API. The app has no `INTERNET` permission.
 - **Stored locally.** Readings are copied into a Room/SQLite database inside the app, excluded from cloud backup and device transfer.
 - **Insights on the device.** Normal ranges, the recovery verdict, trends and patterns are all computed from your own stored readings.
 
