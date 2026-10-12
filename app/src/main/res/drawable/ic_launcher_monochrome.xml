@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed-icon (monochrome) layer: the Pulse ring and heartbeat line in a single colour. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="1024">
+    <group android:pivotX="512" android:pivotY="512" android:scaleX="0.76" android:scaleY="0.76">
+        <path android:pathData="M263.3,344.2 A300,300 0 1 1 280.6,702.9"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="96" android:strokeLineCap="round" />
+        <path android:pathData="M150,512 H392 L450,372 L540,676 L604,448 L640,512 H700"
+            android:strokeColor="#FFFFFFFF" android:strokeWidth="44" android:strokeLineCap="round" android:strokeLineJoin="round" />
+    </group>
+</vector>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024"><defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E323C"/><stop offset="1" stop-color="#111317"/></linearGradient>
+    <radialGradient id="sheen" cx="30%" cy="10%" r="75%"><stop offset="0" stop-color="#FFFFFF" stop-opacity="0.10"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="arc" gradientUnits="userSpaceOnUse" x1="250" y1="180" x2="780" y2="860">
+      <stop offset="0" stop-color="#FFD966"/><stop offset="0.35" stop-color="#E4F75A"/><stop offset="0.65" stop-color="#2FC768"/><stop offset="1" stop-color="#6A5CFF"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="24"/></filter>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs><rect width="1024" height="1024" rx="230" fill="url(#bg)"/><rect width="1024" height="1024" rx="230" fill="url(#sheen)"/><circle cx="512" cy="512" r="300" fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="96"/>
+  <circle cx="512" cy="512" r="300" fill="none" stroke="url(#arc)" stroke-width="96" stroke-linecap="round" stroke-dasharray="1500 1885" transform="rotate(214 512 512)" filter="url(#glow)" opacity="0.55"/>
+  <circle cx="512" cy="512" r="300" fill="none" stroke="url(#arc)" stroke-width="96" stroke-linecap="round" stroke-dasharray="1500 1885" transform="rotate(214 512 512)"/>
+  <path d="M150 512 H392 L450 372 L540 676 L604 448 L640 512 H700" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" filter="url(#soft)"/>
+  <path d="M150 512 H392 L450 372 L540 676 L604 448 L640 512 H700" fill="none" stroke="#FFFFFF" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/></svg>
