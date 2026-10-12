@@ -1,5 +1,7 @@
 # Lumen
 
+![Lumen — your Google Health data, simplified and deeper. No internet, no Google sign-in.](design/cover.png)
+
 An Android app that gives a simpler, deeper view of your Google Health data.
 
 > [!IMPORTANT]
