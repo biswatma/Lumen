@@ -10,7 +10,7 @@ An Android app that gives a simpler, deeper view of your Google Health data.
 
 ## ⬇️ Download
 
-**[Download Lumen.apk](https://github.com/biswatma/Lumen/raw/main/apk/Lumen.apk)** (version 2.4, Android 9+, ~15 MB)
+**[Download Lumen.apk](https://github.com/biswatma/Lumen/raw/main/apk/Lumen.apk)** (version 2.5, Android 9+, ~18 MB)
 
 1. Open the link on your Android phone and download the APK.
 2. Tap the file and allow "Install unknown apps" for your browser or Files app when asked.
@@ -37,6 +37,23 @@ Dark, rings-first UI with a floating pill nav (Home · Sleep · Fitness · Biolo
 | Biology | Biological age estimate, monthly trend, what's driving it, biggest lever |
 | Trends | Steps chart, area charts for each metric over 7 / 30 / 90 days, patterns in your data |
 | Profile & data | Health Connect access, age, background sync, history, what's read, sync, disconnect |
+
+### Home-screen widgets
+
+Eight widgets in the same Pulse style — long-press Lumen's icon › **Widgets**:
+
+| Widget | Shows |
+|---|---|
+| 4×2 Today | Steps with pace, distance, sleep, resting HR |
+| 2×2 Steps | Steps ring against the 10k goal |
+| 2×2 Distance | Today's distance against a 5 km goal |
+| 4×1 Glance | Steps, distance, sleep, body age |
+| 4×4 Overview | Steps / distance / sleep rings, steps bar, vitals, body age |
+| 2×2 Sleep | Last night, stages, change vs your usual |
+| 2×2 Body age | Biological age estimate |
+| 4×2 Steps week | Last 7 days against the 10k goal |
+
+Widgets refresh after every sync (app open, pull to refresh, Sync now, background sync) and redraw every 30 minutes. Tapping one opens the matching screen.
 
 Rings sweep in from 0 to your value when a screen opens. Biological age is an on-device estimate for motivation, not a medical test (see `insights/BioAge.kt`).
 

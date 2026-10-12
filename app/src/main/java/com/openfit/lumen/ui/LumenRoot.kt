@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -72,7 +73,7 @@ private fun Tab.toScreen() = when (this) {
 }
 
 @Composable
-fun LumenRoot(vm: LumenViewModel = viewModel()) {
+fun LumenRoot(requested: Screen? = null, onRequestHandled: () -> Unit = {}, vm: LumenViewModel = viewModel()) {
   val connection by vm.connection.collectAsStateWithLifecycle()
   val sdkStatus by vm.sdkStatus.collectAsStateWithLifecycle()
   val message by vm.message.collectAsStateWithLifecycle()
@@ -91,12 +92,19 @@ fun LumenRoot(vm: LumenViewModel = viewModel()) {
 
   Box(Modifier.fillMaxSize().background(P.Ground)) {
     if (!connection.connected) ConnectScreen(sdkStatus, message, onConnect = ask)
-    else ConnectedApp(vm, connection, message, onAllowAccess = ask)
+    else ConnectedApp(vm, connection, message, onAllowAccess = ask, requested = requested, onRequestHandled = onRequestHandled)
   }
 }
 
 @Composable
-private fun ConnectedApp(vm: LumenViewModel, connection: ConnectionInfo, message: String?, onAllowAccess: () -> Unit) {
+private fun ConnectedApp(
+  vm: LumenViewModel,
+  connection: ConnectionInfo,
+  message: String?,
+  onAllowAccess: () -> Unit,
+  requested: Screen?,
+  onRequestHandled: () -> Unit,
+) {
   var stack by rememberSaveable { mutableStateOf(listOf(Screen.HOME)) }
   val screen = stack.last()
   fun go(s: Screen) {
@@ -107,6 +115,11 @@ private fun ConnectedApp(vm: LumenViewModel, connection: ConnectionInfo, message
     stack = if (stack.size > 1) stack.dropLast(1) else listOf(Screen.HOME)
   }
   BackHandler(enabled = stack.size > 1) { back() }
+
+  // A widget tap asks for a screen (e.g. Sleep): open it once, on top of Home.
+  LaunchedEffect(requested) {
+    requested?.let { go(it); onRequestHandled() }
+  }
 
   val status by vm.syncStatus.collectAsStateWithLifecycle()
   val refreshing by vm.refreshing.collectAsStateWithLifecycle()

@@ -6,7 +6,11 @@ import com.openfit.lumen.data.db.LumenDatabase
 import com.openfit.lumen.data.hc.HealthConnectSource
 import com.openfit.lumen.data.sync.SyncEngine
 import com.openfit.lumen.data.sync.SyncWorker
+import com.openfit.lumen.widget.LumenWidgets
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -15,11 +19,16 @@ class LumenApp : Application() {
   val database by lazy { LumenDatabase.create(this) }
   val settings by lazy { Settings(this) }
   val healthConnect by lazy { HealthConnectSource(this) }
-  val sync by lazy { SyncEngine(database.healthDao(), healthConnect, settings) }
+  val sync by lazy { SyncEngine(database.healthDao(), healthConnect, settings) { LumenWidgets.updateAll(this) } }
+
+  /** App-lifetime scope for small background jobs. */
+  private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
   override fun onCreate() {
     super.onCreate()
     if (settings.info.value.connected) SyncWorker.schedule(this)
+    // Widgets may still show a placeholder (e.g. after an update): redraw them from stored data.
+    appScope.launch { runCatching { LumenWidgets.updateAll(this@LumenApp) } }
   }
 
   /**
@@ -36,6 +45,7 @@ class LumenApp : Application() {
       withContext(Dispatchers.IO) { database.openHelper.writableDatabase.execSQL("VACUUM") }
       settings.clear()
     }
+    runCatching { LumenWidgets.updateAll(this) }
     withTimeoutOrNull(10_000) { runCatching { healthConnect.revokeAll() } }
   }
 }

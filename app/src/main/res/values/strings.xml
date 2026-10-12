@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">Lumen</string>
+    <string name="widget_today_description">Today — steps, distance, sleep and resting heart rate</string>
+    <string name="widget_steps_ring_description">Steps ring — today\'s steps against your 10k goal</string>
+    <string name="widget_distance_description">Distance — today\'s distance against a 5 km goal</string>
+    <string name="widget_glance_description">Glance — steps, distance, sleep and body age in one line</string>
+    <string name="widget_overview_description">Overview — rings for steps, distance and sleep, plus vitals and body age</string>
+    <string name="widget_sleep_description">Sleep — last night\'s sleep and stages</string>
+    <string name="widget_body_age_description">Body age — your biological age estimate</string>
+    <string name="widget_steps_week_description">Steps week — the last 7 days against your 10k goal</string>
+    <string name="widget_today_label">Lumen · Today</string>
+    <string name="widget_steps_ring_label">Lumen · Steps</string>
+    <string name="widget_distance_label">Lumen · Distance</string>
+    <string name="widget_glance_label">Lumen · Glance</string>
+    <string name="widget_overview_label">Lumen · Overview</string>
+    <string name="widget_sleep_label">Lumen · Sleep</string>
+    <string name="widget_body_age_label">Lumen · Body age</string>
+    <string name="widget_steps_week_label">Lumen · Steps week</string>
 </resources>

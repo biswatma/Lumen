@@ -183,6 +183,36 @@ data class TrendsModel(
   val patterns: List<Pattern>,
 )
 
+// ---- Home-screen widgets ----
+
+/** Everything the home-screen widgets show, as display-ready values. */
+data class WidgetModel(
+  val steps: String,
+  val stepsFraction: Float,
+  val stepsPct: Int,
+  val onPace: String?,
+  val distance: String,
+  val distanceUnitless: String,
+  val distanceFraction: Float,
+  val distanceNote: String,
+  val sleep: String,
+  val sleepFraction: Float,
+  /** Share of the night in each stage, in DEEP, REM, LIGHT, AWAKE order; empty without stages. */
+  val sleepStages: List<Float>,
+  val sleepNote: String,
+  val sleepNoteTone: Tone,
+  val restingHr: String,
+  val hrv: String,
+  val spo2: String,
+  val bodyAge: String?,
+  val bodyAgeNote: String?,
+  val bodyAgeDelta: Double?,
+  val calendarAge: Int?,
+  /** Last 7 days of steps, oldest first: one-letter day label and the count. */
+  val week: List<Pair<String, Double?>>,
+  val weekAverage: String,
+)
+
 // ---- Biological age ----
 
 data class BioFactorRow(val name: String, val reading: String, val years: Double, val tab: Tab?)

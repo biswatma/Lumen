@@ -12,8 +12,8 @@ android {
         applicationId = "com.openfit.lumen"
         minSdk = 26
         targetSdk = 36
-        versionCode = 6
-        versionName = "2.4"
+        versionCode = 7
+        versionName = "2.5"
     }
 
     buildTypes {
@@ -70,6 +70,9 @@ dependencies {
 
   // Background sync
   implementation(libs.androidx.work.runtime.ktx)
+
+  // Home-screen widgets
+  implementation(libs.androidx.glance.appwidget)
 
   // Google Health data, read on-device through Health Connect
   implementation(libs.androidx.health.connect)

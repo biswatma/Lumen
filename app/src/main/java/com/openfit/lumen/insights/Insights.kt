@@ -812,6 +812,70 @@ class Insights(
   }
 
   // ======================================================================
+  // Home-screen widgets
+  // ======================================================================
+
+  suspend fun widgetModel(): WidgetModel {
+    val t = today()
+    val steps = dailySums(HealthTypes.STEPS, t, t)[t] ?: 0.0
+    val distances = dailySums(HealthTypes.DISTANCE, t.minusDays(30), t)
+    val km = distances[t]?.div(1_000_000)
+    val usualKm = Stats.mean(distances.filterKeys { it < t }.values.filter { it > 0 })?.div(1_000_000)
+
+    val sleeps = mainSleeps(t.minusDays(40), t)
+    val last = sleeps[t] ?: sleeps[t.minusDays(1)]
+    val usualSleep = last?.let { l -> Stats.median(sleeps.filterKeys { it < LocalDate.parse(l.day) }.values.mapNotNull { it.value }.takeLast(30)) }
+    val stages = last?.let { SleepStages.fromStored(it.json) }.orEmpty()
+    val stageTotal = stages.sumOf { it.minutes }.takeIf { it > 0 }
+    val stageShares = if (stageTotal == null) emptyList() else listOf(Stage.DEEP, Stage.REM, Stage.LIGHT, Stage.AWAKE).map { s ->
+      (stages.filter { it.stage == s }.sumOf { it.minutes } / stageTotal).toFloat()
+    }
+    val sleepDelta = if (last?.value != null && usualSleep != null) last.value - usualSleep else null
+
+    val rhr = overnight(HealthTypes.RESTING_HR, t)
+    val hrv = overnight(HealthTypes.HRV, t)
+    val spo2 = overnight(HealthTypes.SPO2, t)
+    val bio = bioAgeModel()
+
+    val stepDays = dailySums(HealthTypes.STEPS, t.minusDays(6), t)
+    val week = (6 downTo 0).map { t.minusDays(it.toLong()) }.map { d -> weekday.format(d).take(1) to stepDays[d] }
+    val weekAvg = Stats.mean(week.mapNotNull { it.second }.filter { it >= MIN_WORN_STEPS })
+
+    return WidgetModel(
+      steps = Fmt.int(steps),
+      stepsFraction = frac(steps, 0.0, STEP_GOAL),
+      stepsPct = (steps / STEP_GOAL * 100).roundToInt(),
+      onPace = paceProjection(steps)?.let(Fmt::int),
+      distance = km?.let { "${Fmt.dec(it)} km" } ?: "—",
+      distanceUnitless = km?.let { Fmt.dec(it) } ?: "—",
+      distanceFraction = frac(km, 0.0, DISTANCE_GOAL_KM),
+      distanceNote = buildString {
+        append("${((km ?: 0.0) / DISTANCE_GOAL_KM * 100).roundToInt()}% of ${DISTANCE_GOAL_KM.toInt()} km")
+        usualKm?.let { append(" · usual ${Fmt.dec(it)}") }
+      },
+      sleep = Fmt.duration(last?.value),
+      sleepFraction = frac(last?.value, 0.0, SLEEP_NEED),
+      sleepStages = stageShares,
+      sleepNote = when {
+        last == null -> "No sleep recorded"
+        sleepDelta == null -> "Building your usual"
+        kotlin.math.abs(sleepDelta) < 10 -> "About your usual"
+        else -> "${Fmt.signedDuration(sleepDelta)} vs usual"
+      },
+      sleepNoteTone = sleepDelta?.let { toneOf(it, 10.0, -30.0) } ?: Tone.NEUTRAL,
+      restingHr = rhr.value?.let { Fmt.int(it) } ?: "—",
+      hrv = hrv.value?.let { Fmt.int(it) } ?: "—",
+      spo2 = spo2.value?.let { "${Fmt.dec(it, 0)}%" } ?: "—",
+      bodyAge = bio?.let { Fmt.dec(it.age) },
+      bodyAgeNote = bio?.let { "${Fmt.dec(abs(it.delta))} yrs ${if (it.delta <= 0) "younger" else "older"}" },
+      bodyAgeDelta = bio?.delta,
+      calendarAge = bio?.calendarAge,
+      week = week,
+      weekAverage = Fmt.int(weekAvg),
+    )
+  }
+
+  // ======================================================================
   // Biological age
   // ======================================================================
 
@@ -1004,6 +1068,8 @@ class Insights(
     const val MIN_WORN_STEPS = 500.0
     /** An hour with fewer steps than this counts as quiet (mostly sitting). */
     const val QUIET_STEPS = 250.0
+    /** Daily distance goal used by the Distance widget. */
+    const val DISTANCE_GOAL_KM = 5.0
     /** Sleep need used for the Sleep ring and target bedtime. */
     const val SLEEP_NEED = 480.0
     private val NOON: LocalTime = LocalTime.NOON

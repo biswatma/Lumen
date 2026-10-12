@@ -39,6 +39,8 @@ class SyncEngine(
   private val dao: HealthDao,
   private val source: HealthConnectSource,
   private val settings: Settings,
+  /** Called after each completed sync, e.g. to refresh home-screen widgets. */
+  private val onSynced: suspend () -> Unit = {},
 ) {
   private val mutex = Mutex()
   private val _status = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
@@ -129,6 +131,7 @@ class SyncEngine(
       )
     }
     _status.value = SyncStatus.Finished(now.toEpochMilli(), failed)
+    runCatching { onSynced() }
     return true
   }
 
