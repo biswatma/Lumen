@@ -106,3 +106,22 @@ PermissionsRationaleActivity    privacy policy shown from Health Connect's permi
 ```
 
 The tests cover zone estimation, per-minute heart-rate bucketing, stored sleep stages, and the insight maths: recovery, hourly steps (including records that span hours), quiet stretches, daily averaging, naps and trends.
+
+## License
+
+Lumen is **source-available** under the [PolyForm Noncommercial License 1.0.0](LICENSE).
+
+- ✅ **Free for personal use** — use it, study it, change it, build it for yourself, and share it (including your changes) with others for non-commercial purposes.
+- ✅ Also free for research, education, hobby projects, and use by charities and public institutions.
+- ❌ **No commercial use** — you may not sell it, include it in a paid product or service, or use it for a business's commercial advantage.
+
+Anyone you share it with must also get the license and this notice:
+
+```
+Required Notice: Copyright (c) 2026 biswatma (https://github.com/biswatma)
+```
+
+For commercial licensing, contact [@biswatma](https://github.com/biswatma).
+
+The bundled Figtree font (`app/src/main/res/font/figtree.ttf`) is © The Figtree Project Authors and licensed separately under the [SIL Open Font License 1.1](https://openfontlicense.org).
+
